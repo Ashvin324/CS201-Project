@@ -1,241 +1,312 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include<ctype.h>
+#include <ctype.h>
 
-int RBRotations=0;
+enum COLOR {Red, Black};
 
-struct Node
+typedef struct Node
 {
-    char c; // Node color: r=red,b=black
-    int x; // Node value
-    struct Node* prev,*l,*r; // Pointers: prev=parent,l=left child,r=right child
-}*root; //Root of the RB tree
+int data;
+struct Node *right;
+struct Node *left;
+struct Node *parent;
+enum COLOR color;
+}Node;
 
-struct Node* CreateNode(int x) // Creates a new node
+typedef struct RBtree
 {
-    struct Node *ptr=malloc(sizeof(struct Node));
-    ptr->x=x;
-    ptr->prev=NULL;
-    ptr->l=NULL;
-    ptr->r=NULL;
-    ptr->c='r';
-    return ptr;
-};
+Node *root;
+Node *NIL;
+}RBtree;
 
-struct Node* RB_BST(struct Node* ptr,struct Node* temp) // BST insertion of a node
+Node* newNode(int data)
 {
-    if(!ptr)  //Tree is empty
-        return temp;
-    if(temp->x<ptr->x) // If new node has value less than temp, then insert into its left subtree
-    {
-        ptr->l=RB_BST(ptr->l,temp);
-        ptr->l->prev=ptr;
-    }
-    else if(temp->x>ptr->x) // If new node has value greater than temp, then insert into its right subtree
-    {
-        ptr->r=RB_BST(ptr->r,temp);
-        ptr->r->prev=ptr;
-    }
-    return ptr;
+Node* n = malloc(sizeof(Node));
+n->left = NULL;
+n->right = NULL;
+n->parent = NULL;
+n->data = data;
+n->color = Red;
+return n;
 }
 
-void RB_RightRotate(struct Node* ptr) // Right rotation in RB tree
+RBtree* new_RBtree()
 {
-    struct Node* left=ptr->l;
-    ptr->l=left->r;
-    if(ptr->l)
-        ptr->l->prev=ptr;
-    left->prev=ptr->prev;
-    if(!ptr->prev)
-        root=left;
-    else if(ptr==ptr->prev->l)
-        ptr->prev->l=left;
+RBtree *t = malloc(sizeof(RBtree));
+Node *nil_node = malloc(sizeof(Node));
+nil_node->left = NULL;
+nil_node->right = NULL;
+nil_node->parent = NULL;
+nil_node->color = Black;
+nil_node->data = 0;
+t->NIL = nil_node;
+t->root = t->NIL;
+
+return t;
+}
+
+void RB_LeftRotate(RBtree *t, Node *x) {
+Node *y = x->right;
+x->right = y->left;
+if(y->left != t->NIL)
+    y->left->parent = x;
+y->parent = x->parent;
+if(x->parent == t->NIL) //x is root
+    t->root = y;
+else if(x == x->parent->left) //x is left child
+    x->parent->left = y;
+else //x is right child
+    x->parent->right = y;
+y->left = x;
+x->parent = y;
+}
+
+void RB_RightRotate(RBtree *t, Node *x)
+{
+Node *y = x->left;
+x->left = y->right;
+if(y->right != t->NIL)
+    y->right->parent = x;
+y->parent = x->parent;
+if(x->parent == t->NIL) //x is root
+    t->root = y;
+else if(x == x->parent->right) //x is left child
+    x->parent->right = y;
+else //x is right child
+    x->parent->left = y;
+y->right = x;
+x->parent = y;
+}
+
+struct Node* RB_Search(RBtree *t,Node *x,int val)
+{
+    if(val<x->data&&x->left!=t->NIL)
+        RB_Search(t,x->left,val);
+    else if(val>x->data&&x->right!=t->NIL)
+        RB_Search(t,x->right,val);
+    else if(val==x->data)
+        return x;
     else
-        ptr->prev->r=left;
-    left->r=ptr;
-    ptr->prev=left;
-    RBRotations++;
+        return t->NIL;
 }
 
-void RB_LeftRotate(struct Node* ptr) // Left rotation in RB tree
+void RB_InsertFix(RBtree *t, Node *z)
 {
-    struct Node* right=ptr->r;
-    ptr->r=right->l;
-    if(ptr->r)
-        ptr->r->prev=ptr;
-    right->prev=ptr->prev;
-    if(!ptr->prev)
-        root=right;
-    else if(ptr==ptr->prev->l)
-        ptr->prev->l=right;
-    else
-        ptr->prev->r=right;
-    right->l=ptr;
-    ptr->prev=right;
-    RBRotations++;
-}
-
-void RB_DeleteFix(struct Node* ptr)
-{
-
-}
-
-void RB_InsertFix(struct Node* root, struct Node* ptr) // Balances the RB tree
-{
-    struct Node* parentptr=NULL; // Pointer to parent of node
-    struct Node* gdparentptr=NULL; // Pointer to grandparent of node
-    while ((ptr!=root)&&(ptr->c!='b')&&(ptr->prev->c=='r'))
+while(z->parent->color == Red)
     {
-        parentptr=ptr->prev;
-        gdparentptr=ptr->prev->prev;
-        if (parentptr==gdparentptr->l) // Parent is the left child of the grandparent
+    if(z->parent == z->parent->parent->left) //z.parent is the left child
+    {
+    Node *y = z->parent->parent->right; //Uncle of z
+    if(y->color == Red) //case 1
         {
-
-            struct Node* uncleptr=gdparentptr->r;
-            if (uncleptr&&uncleptr->c=='r') // Uncle is also red, so only recoloring is required
-            {
-                gdparentptr->c='r';
-                parentptr->c='b';
-                uncleptr->c='b';
-                ptr=gdparentptr;
-            }
-            else
-            {
-                if (ptr==parentptr->r) // Node is the right child of its parent and so left-rotation is required
-                {
-                    RB_LeftRotate(parentptr);
-                    ptr=parentptr;
-                    parentptr=ptr->prev;
-                }
-                RB_RightRotate(gdparentptr); // Node is the left child of its parent and so right-rotation is required
-                char ch=parentptr->c;
-                parentptr->c=gdparentptr->c;
-                gdparentptr->c=ch;
-                ptr=parentptr;
-            }
+        z->parent->color = Black;
+        y->color = Black;
+        z->parent->parent->color = Red;
+        z = z->parent->parent;
         }
-        else // Parent is the right child of the grandparent
+    else //case2 or case3
         {
-            struct Node* uncleptr=gdparentptr->l;
-            if (uncleptr&&(uncleptr->c=='r')) // Uncle is also red, so only recoloring is required
-            {
-                gdparentptr->c='r';
-                parentptr->c='b';
-                uncleptr->c='b';
-                ptr=gdparentptr;
-            }
-            else
-            {
-                if(ptr==parentptr->l) // Node is the left child of its parent and so right-rotation is required
-                {
-                    RB_RightRotate(parentptr);
-                    ptr=parentptr;
-                    parentptr=ptr->prev;
-                }
-                RB_LeftRotate(gdparentptr); // Node is the right child of its parent and so left-rotation is required
-                char ch=parentptr->c;
-                parentptr->c=gdparentptr->c;
-                gdparentptr->c=ch;
-                ptr=parentptr;
-            }
+        if(z == z->parent->right) //case2
+        {
+        z = z->parent;
+        RB_LeftRotate(t, z);
         }
+        //case3
+        z->parent->color = Black;
+        z->parent->parent->color = Red;
+        RB_RightRotate(t, z->parent->parent);
     }
-    root->c='b';
-    printf("Elements inserted successfully! Rotations: RB tree- %d\n",RBRotations);
+  }
+  else //z.parent is the right child
+    {
+    Node *y = z->parent->parent->left; //Uncle of z
+    if(y->color == Red)
+        {
+        z->parent->color = Black;
+        y->color = Black;
+        z->parent->parent->color = Red;
+        z = z->parent->parent;
+        }
+    else
+        {
+        if(z == z->parent->left)
+        {
+        z = z->parent;
+        RB_RightRotate(t, z);
+        }
+        z->parent->color = Black;
+        z->parent->parent->color = Red;
+        RB_LeftRotate(t, z->parent->parent);
+    }
+  }
+}
+t->root->color = Black;
 }
 
-void RB_Replace(struct Node *p1,struct Node *p2)
+void RB_Insert(RBtree *t, Node *z)
 {
-    if(p1==root)
-        root=p2;
-    else if(p1==p1->prev->l)
-        p1->prev->l=p2;
-    else
-        p1->prev->r=p2;
-    p2->prev=p1->prev;
+Node* y = t->NIL;
+Node* ptr = t->root;
+while(ptr != t->NIL)
+{
+  y = ptr;
+  if(z->data < ptr->data)
+    ptr = ptr->left;
+  else
+    ptr = ptr->right;
+}
+z->parent = y;
+if(y == t->NIL) //newly added node is root
+    t->root = z;
+else if(z->data < y->data) //data of child is less than its parent, left child
+    y->left = z;
+else
+    y->right = z;
+z->right = t->NIL;
+z->left = t->NIL;
+RB_InsertFix(t, z); // Balancing tree after insertion of node
 }
 
-void RB_Inorder(struct Node* ptr) // Inorder traversal of tree
+void RB_Transplant(RBtree *t, Node *u, Node *v)
 {
-    if(!ptr)
-        return;
-    RB_Inorder(ptr->l);
-    printf("%d ",ptr->x);
-    RB_Inorder(ptr->r);
+if(u->parent == t->NIL)
+    t->root = v;
+else if(u == u->parent->left)
+    u->parent->left = v;
+else
+    u->parent->right = v;
+v->parent = u->parent;
 }
 
-struct Node* RB_Search(struct Node* ptr,int x)
+Node* RB_Minimum(RBtree *t, Node *x)
 {
-    if(x<ptr->x&&ptr->l)
-        RB_Search(ptr->l,x);
-    else if(x>ptr->x&&ptr->r)
-        RB_Search(ptr->r,x);
-    else if(x==ptr->x)
-        return ptr;
-    else
-        return NULL;
+while(x->left != t->NIL)
+    x = x->left;
+return x;
 }
 
-struct Node* RB_Successor(struct Node *ptr)
+void RB_DeleteFix(RBtree *t, Node *x)
 {
-    struct Node *sptr;
-    if(ptr->l)
+while(x != t->root && x->color == Black)
     {
-        sptr=ptr->l;
-        while(sptr->r)
-            sptr=sptr->r;
-    }
-    else
-    {
-        sptr=ptr->r;
-        while(sptr->l)
-            sptr=sptr->l;
-    }
-    return sptr;
-};
-
-void RB_Delete(int val)
-{
-    struct Node *z=RB_Search(root,val);
-    struct Node *x,*y=z;
-    char color=y->c;
-    if(!z->l)
-    {
-        x=z->r;
-        RB_Replace(z,z->r);
-    }
-    else if(!z->r)
-    {
-        x=z->l;
-        RB_Replace(z,z->l);
-    }
-    else
-    {
-        y=RB_Successor(z);
-        color=y->c;
-        x=y->r;
-        if(y->prev==z)
-            x->prev=y;
+    if(x == x->parent->left)
+        {
+        Node *w = x->parent->right;
+        if(w->color == Red)
+            {
+            w->color = Black;
+            x->parent->color = Red;
+            RB_LeftRotate(t, x->parent);
+            w = x->parent->right;
+            }
+        if(w->left->color == Black && w->right->color == Black)
+            {
+            w->color = Red;
+            x = x->parent;
+            }
         else
             {
-                RB_Replace(y,y->r);
-                y->r=z->r;
-                y->r->prev=y;
+            if(w->right->color == Black)
+                {
+                w->left->color = Black;
+                w->color = Red;
+                RB_RightRotate(t, w);
+                w = x->parent->right;
+                }
+            w->color = x->parent->color;
+            x->parent->color = Black;
+            w->right->color = Black;
+            RB_LeftRotate(t, x->parent);
+            x = t->root;
             }
-        RB_Replace(z,y);
-        y->l=z->l;
-        y->l->prev=y;
-        y->c=z->c;
+        }
+    else
+        {
+        Node *w = x->parent->left;
+        if(w->color == Red)
+            {
+            w->color = Black;
+            x->parent->color = Red;
+            RB_RightRotate(t, x->parent);
+            w = x->parent->left;
+            }
+        if(w->right->color == Black && w->left->color == Black)
+            {
+            w->color = Red;
+            x = x->parent;
+            }
+    else
+            {
+            if(w->left->color == Black)
+                {
+                w->right->color = Black;
+                w->color = Red;
+                RB_LeftRotate(t, w);
+                w = x->parent->left;
+                }
+            w->color = x->parent->color;
+            x->parent->color = Black;
+            w->left->color = Black;
+            RB_RightRotate(t, x->parent);
+            x = t->root;
+            }
+        }
     }
-    if(color=='b')
-    {
-        RB_InsertFix(root,x);
-    }
+x->color = Black;
+}
+
+void RB_Delete(RBtree *t, int val)
+{
+Node *z=RB_Search(t,t->root,val);
+Node *y = z;
+Node *x;
+enum COLOR color = y->color;
+if(z->left == t->NIL)
+{
+  x = z->right;
+  RB_Transplant(t, z, z->right);
+}
+else if(z->right == t->NIL)
+{
+  x = z->left;
+  RB_Transplant(t, z, z->left);
+}
+else
+{
+  y = RB_Minimum(t, z->right);
+  color = y->color;
+  x = y->right;
+  if(y->parent == z)
+    x->parent = z;
+  else
+  {
+    RB_Transplant(t, y, y->right);
+    y->right = z->right;
+    y->right->parent = y;
+  }
+  RB_Transplant(t, z, y);
+  y->left = z->left;
+  y->left->parent = y;
+  y->color = z->color;
+}
+if(color == Black)
+  RB_DeleteFix(t, x);
+}
+
+void RB_Inorder(RBtree *t, Node *x)
+{
+if(x != t->NIL)
+{
+  RB_Inorder(t, x->left);
+  printf("%d\n", x->data);
+  RB_Inorder(t, x->right);
+}
 }
 
 int main()
 {
-    char ch='Y';
+RBtree *t = new_RBtree();
+char ch='Y';
     while(ch=='Y')
     {
         int choice,n,ele;
@@ -249,25 +320,24 @@ int main()
                     for(int i=0;i<n;i++)
                     {
                         scanf("%d",&ele);
-                        struct Node *ptr=CreateNode(ele); // Creates a new node
-                        root=RB_BST(root,ptr); // Inserting new node
-                        RB_InsertFix(root,ptr); // Balancing tree after insertion of node
+                        struct Node *ptr=newNode(ele); // Creates a new node
+                        RB_Insert(t,ptr); // Inserting new node
                     }
                     break;
             case 2: printf("Enter element to be deleted: ");
                     scanf("%d",&ele);
-                    //RB_Delete(root,ele);
+                    RB_Delete(t,ele);
                     break;
             case 3: printf("Enter element to be searched for: ");
                     scanf("%d",&ele);
-                    struct Node *ptr=RB_Search(root,ele);
-                    if(ptr)
+                    Node *ptr=RB_Search(t,t->root,ele);
+                    if(ptr!=t->NIL)
                         printf("Element found!\n");
                     else
                         printf("Element not found!\n");
                     break;
             case 4: printf("In-order traversal of RB tree:\n");
-                    RB_Inorder(root);
+                    RB_Inorder(t,t->root);
                     break;
             case 5: printf("\nExiting...");
                     exit(0);
@@ -279,5 +349,5 @@ int main()
         ch=toupper(ch);
     }
     printf("\nExiting...");
-    return 0;
+return 0;
 }
