@@ -10,3 +10,5 @@ Project Name: Implementation of Red-Black tree and its comparison with AVL tree 
 
 Project descripton: The project is to show the use of Red-Black tree as a more time-efficient tree when it comes to insertion or deletion in a BST as it takes less number of rotations to balance compared to any other self-balancing BST and hence it has a wider application in industry than other self-balancing BSTs, like Linux scheduler, or during frequent data mining etc.
 
+Currently, it is only working for distinct integer values, as out of 7 compiler on which it was tested with the required modifications, it gave errors on 1 of those compilers for the repeated integer values. So, we decided to not implement those modifications and so the code only runs for distinct integer values.
+
