@@ -1,6 +1,6 @@
 CS201-Project Group 
 Group Members:
-Ankit Yadav 2020MCB1227
+Ankit 2020MCB1227
 Ashvin Sehgal 2020MCB1232
 Vinayak Sahu 2020MCB1253
 
