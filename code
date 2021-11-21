@@ -15,11 +15,11 @@ struct RB_Node *parent;
 enum COLOR color;
 }RB_Node;
 
-typedef struct RBtree
+typedef struct RBTree
 {
 RB_Node *root;
 RB_Node *NIL;
-}RBtree;
+}RBTree;
 
 RB_Node* newRB_Node(int data)
 {
@@ -32,9 +32,9 @@ n->color = Red;
 return n;
 }
 
-RBtree* new_RBtree()
+RBTree* new_RBTree()
 {
-RBtree *t = malloc(sizeof(RBtree));
+RBTree *t = malloc(sizeof(RBTree));
 RB_Node *nil_RB_Node = malloc(sizeof(RB_Node));
 nil_RB_Node->left = NULL;
 nil_RB_Node->right = NULL;
@@ -46,7 +46,7 @@ t->root = t->NIL;
 return t;
 }
 
-void RB_LeftRotate(RBtree *t, RB_Node *x)
+void RB_LeftRotate(RBTree *t, RB_Node *x)
 {
 RB_Node *y = x->right;
 x->right = y->left;
@@ -64,7 +64,7 @@ x->parent = y;
 RBrotations++;
 }
 
-void RB_RightRotate(RBtree *t, RB_Node *x)
+void RB_RightRotate(RBTree *t, RB_Node *x)
 {
 RB_Node *y = x->left;
 x->left = y->right;
@@ -82,7 +82,7 @@ x->parent = y;
 RBrotations++;
 }
 
-struct RB_Node* RB_Search(RBtree *t,RB_Node *x,int val)
+struct RB_Node* RB_Search(RBTree *t,RB_Node *x,int val)
 {
     if(val<x->data&&x->left!=t->NIL)
         RB_Search(t,x->left,val);
@@ -94,7 +94,7 @@ struct RB_Node* RB_Search(RBtree *t,RB_Node *x,int val)
         return t->NIL;
 }
 
-void RB_InsertFix(RBtree *t, RB_Node *z)
+void RB_InsertFix(RBTree *t, RB_Node *z)
 {
 while(z->parent->color == Red)
     {
@@ -147,7 +147,7 @@ printf("Element(s) inserted successfully!\n");
 t->root->color = Black;
 }
 
-void RB_Insert(RBtree *t, int val)
+void RB_Insert(RBTree *t, int val)
 {
 RB_Node *z=newRB_Node(val);
 RB_Node* y = t->NIL;
@@ -172,7 +172,7 @@ z->left = t->NIL;
 RB_InsertFix(t, z); // Balancing tree after insertion of RB_Node
 }
 
-void RB_Transplant(RBtree *t, RB_Node *u, RB_Node *v)
+void RB_Transplant(RBTree *t, RB_Node *u, RB_Node *v)
 {
 if(u->parent == t->NIL)
     t->root = v;
@@ -183,14 +183,14 @@ else
 v->parent = u->parent;
 }
 
-RB_Node* RB_Minimum(RBtree *t, RB_Node *x)
+RB_Node* RB_Minimum(RBTree *t, RB_Node *x)
 {
 while(x->left != t->NIL)
     x = x->left;
 return x;
 }
 
-void RB_DeleteFix(RBtree *t, RB_Node *x)
+void RB_DeleteFix(RBTree *t, RB_Node *x)
 {
 while(x != t->root && x->color == Black)
     {
@@ -260,7 +260,7 @@ while(x != t->root && x->color == Black)
 x->color = Black;
 }
 
-void RB_Delete(RBtree *t, int val)
+void RB_Delete(RBTree *t, int val)
 {
 RB_Node *z=RB_Search(t,t->root,val);
 RB_Node *y = z;
@@ -299,7 +299,7 @@ if(color == Black)
 printf("Element deleted successfully!\n");
 }
 
-void RB_Inorder(RBtree *t, RB_Node *x)
+void RB_Inorder(RBTree *t, RB_Node *x)
 {
 if(x != t->NIL)
 {
@@ -311,7 +311,7 @@ if(x != t->NIL)
 
 int main()
 {
-RBtree *t = new_RBtree();
+RBTree *t = new_RBTree();
 char ch='Y';
     while(ch=='Y')
     {
