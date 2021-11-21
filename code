@@ -281,7 +281,7 @@ while(z->parent->color == Red)
         z->parent->parent->color = Red;
         z = z->parent->parent;
         }
-    else //case2 or case3
+    else
         {
         if(z == z->parent->right) // Node is the right child of its parent, so left-rotation is required
             {
@@ -329,8 +329,10 @@ while(ptr != t->NIL)
   y = ptr;
   if(z->data < ptr->data)
     ptr = ptr->left;
-  else
+  else if(z->data > ptr->data)
     ptr = ptr->right;
+  else
+    return;
 }
 z->parent = y;
 if(y == t->NIL) // Newly added node is root
@@ -489,17 +491,16 @@ char ch='Y';
     while(ch=='Y')
     {
         int choice,n,ele;
-        printf("Enter your choice:\n1. Insert new elements\n2. Delete an element\n3. Search for an element\n4. Inorder Traversal of RB tree\n5. Exit\nEnter your choice: ");
+        printf("Enter your choice:\n1. Insert elements\n2. Delete an element\n3. Search for an element\n4. Inorder Traversal of RB tree\n5. Exit\nEnter your choice: ");
         scanf("%d",&choice);
         printf("\n");
         switch(choice)
         {
-            case 1: printf("Enter number of elements to be inserted: ");
-                    scanf("%d",&n);
-                    printf("Enter elements to be inserted: ");
-                    for(int i=0;i<n;i++)
+            case 1: printf("Inserting values....\n");
+                    FILE *file=fopen("input.txt","r");
+                    while(!feof(file))
                     {
-                        scanf("%d",&ele);
+                        fscanf(file,"%d",&ele);
                         RB_Insert(t,ele); // Inserting new RB Tree node
                         root=AVL_Insert(root,ele); // Inserting new AVL Tree node
                     }
@@ -515,8 +516,8 @@ char ch='Y';
                     break;
             case 3: printf("Enter element to be searched for: ");
                     scanf("%d",&ele);
-                    RB_Node *rbptr=RB_Search(t,t->root,ele);
-                    struct Node *avlptr=AVL_Search(root,ele);
+                    RB_Node *rbptr=RB_Search(t,t->root,ele); // Search for element in RB Tree
+                    struct Node *avlptr=AVL_Search(root,ele); // Search for element in AVL Tree
                     if(rbptr!=t->NIL)
                         printf("Element found in RB Tree!\n");
                     else
@@ -527,9 +528,9 @@ char ch='Y';
                         printf("Element not found in AVL Tree!\n");
                     break;
             case 4: printf("In-order traversal:\nRB tree: ");
-                    RB_Inorder(t,t->root);
+                    RB_Inorder(t,t->root); // Inorder traversal of RB Tree
                     printf("\nAVL tree: ");
-                    AVL_Inorder(root);
+                    AVL_Inorder(root); // Inorder traversal of AVL Tree
                     break;
             case 5: printf("\nExiting...");
                     exit(0);
